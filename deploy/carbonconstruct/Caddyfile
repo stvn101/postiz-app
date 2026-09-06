@@ -1,0 +1,18 @@
+# Caddy terminates TLS (automatic Let's Encrypt) and proxies to the Postiz
+# container, which serves the frontend and the backend (/api) on port 5000.
+#
+# POSTIZ_DOMAIN comes from .env (docker compose passes it through).
+
+{$POSTIZ_DOMAIN} {
+	encode zstd gzip
+
+	# Media uploads can be large; keep the proxy from buffering them.
+	request_body {
+		max_size 100MB
+	}
+
+	reverse_proxy postiz:5000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}
